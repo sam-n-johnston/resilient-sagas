@@ -22,6 +22,23 @@ Once you have the name, you can go to the SQS console, search with your SQS's na
 
 ```json
 {
-  "test": "my message"
+    "payload": {
+        "items": [
+            { "sku": "123", "quantity": 12 },
+            { "sku": "123", "quantity": 12 }
+        ],
+        "shippingAddress": {
+            "fullName": "my full name",
+            "addressLine1": "123 Cool",
+            "addressLine2": "Apt 1001",
+            "city": "Montreal",
+            "state": "Quebec",
+            "postalCode": "H1Q 3P9",
+            "countryCode": "CA"
+        }
+    },
+    "metadata": {
+        "requestId": "reqId123"
+    }
 }
 ```
