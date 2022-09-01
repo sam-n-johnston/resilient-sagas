@@ -4,7 +4,7 @@ export class CreateOutboundInWMSHandler {
     constructor(
     ) {}
 
-    public async handle(command: CreateOutboundInWMSCommand): Promise<void> {
+    public async handle(command: CreateOutboundInWMSCommand): Promise<string> {
         console.log('OK!')
     }
 }
