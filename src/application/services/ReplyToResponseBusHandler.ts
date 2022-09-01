@@ -1,10 +1,9 @@
-import { ReplyToResponseBusCommand } from "./ReplyToResponseBusCommand";
+import { ReplyToResponseBusCommand } from './ReplyToResponseBusCommand';
 
 export class ReplyToResponseBusHandler {
-    constructor(
-    ) {}
+    constructor() {}
 
     public async handle(command: ReplyToResponseBusCommand): Promise<void> {
-        console.log('OK!')
+        console.log('OK!');
     }
 }

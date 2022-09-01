@@ -1,10 +1,10 @@
-import { CreateOutboundInWMSCommand } from "./CreateOutboundInWMSCommand";
+import { CreateOutboundInWMSCommand } from './CreateOutboundInWMSCommand';
 
 export class CreateOutboundInWMSHandler {
-    constructor(
-    ) {}
+    constructor() {}
 
     public async handle(command: CreateOutboundInWMSCommand): Promise<string> {
-        console.log('OK!')
+        console.log('OK!');
+        return '123';
     }
 }

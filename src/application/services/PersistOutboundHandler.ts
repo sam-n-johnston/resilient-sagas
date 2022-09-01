@@ -1,10 +1,9 @@
-import { PersistOutboundCommand } from "./PersistOutboundCommand";
+import { PersistOutboundCommand } from './PersistOutboundCommand';
 
 export class PersistOutboundHandler {
-    constructor(
-    ) {}
+    constructor() {}
 
     public async handle(command: PersistOutboundCommand): Promise<void> {
-        console.log('OK!')
+        console.log('OK!');
     }
 }

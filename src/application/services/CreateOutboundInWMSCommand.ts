@@ -1,15 +1,15 @@
-import { Command } from "./Command";
+import { Command } from './Command';
 
-type Item = { sku: string, quantity: number }
+type Item = { sku: string; quantity: number };
 type Address = {
-    fullName: string,
-    addressLine1: string,
-    addressLine2: string,
-    city: string,
-    state: string,
-    postalCode: string,
-    countryCode: string,
-}
+    fullName: string;
+    addressLine1: string;
+    addressLine2: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    countryCode: string;
+};
 
 export class CreateOutboundInWMSCommand extends Command {
     constructor(

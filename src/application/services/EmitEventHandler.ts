@@ -1,10 +1,9 @@
-import { EmitEventCommand } from "./EmitEventCommand";
+import { EmitEventCommand } from './EmitEventCommand';
 
 export class EmitEventHandler {
-    constructor(
-    ) {}
+    constructor() {}
 
     public async handle(command: EmitEventCommand): Promise<void> {
-        console.log('OK!')
+        console.log('OK!');
     }
 }
