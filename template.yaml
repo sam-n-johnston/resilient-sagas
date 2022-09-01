@@ -1,0 +1,229 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: SAM Accelerate example
+
+Globals:
+  Function:
+    Timeout: 3
+    Tracing: Active
+
+Resources:
+  CreateOutboundQueue:
+    Type: AWS::SQS::Queue
+
+  CreateOutboundReplyQueue:
+    Type: AWS::SQS::Queue
+
+  ConsumeCommandBusAndStartSaga:
+    Type: AWS::Serverless::Function
+    Properties:
+      ReservedConcurrentExecutions: 1
+      MemorySize: 1024
+      CodeUri: src/
+      Handler: ui/ConsumeCommandBusAndStartSaga.handler
+      Runtime: nodejs16.x
+      Role: !GetAtt ConsumeCommandBusAndStartSagaRole.Arn
+      Architectures:
+        - x86_64
+
+  CreateOutbound:
+    Type: AWS::StepFunctions::StateMachine
+    DependsOn:
+      - CreateOutboundLogGroup
+      - StatesExecutionRole
+    Properties:
+      LoggingConfiguration: 
+        Level: ALL
+        Destinations:
+          - CloudWatchLogsLogGroup:
+              LogGroupArn: !GetAtt CreateOutboundLogGroup.Arn
+      StateMachineType: STANDARD
+      RoleArn: !GetAtt StatesExecutionRole.Arn
+      Definition:
+        Comment: Step function that reserves stock with strong consistency
+        StartAt: CreateOutboundInWMS
+        States:
+          CreateOutboundInWMS:
+            Type: Task
+            Resource: !GetAtt CreateOutboundInWMS.Arn
+            Next: PersistOutbound
+          PersistOutbound:
+            Type: Task
+            Resource: !GetAtt PersistOutbound.Arn
+            Next: EmitEvent
+          EmitEvent:
+            Type: Task
+            Resource: !GetAtt EmitEvent.Arn
+            Next: ReplyToResponseBus
+          ReplyToResponseBus:
+            Type: Task
+            Resource: !GetAtt ReplyToResponseBus.Arn
+            End: true
+
+  CreateOutboundInWMS:
+    Type: AWS::Serverless::Function
+    Properties:
+      ReservedConcurrentExecutions: 1
+      MemorySize: 1024
+      CodeUri: src/
+      Handler: ui/CreateOutboundInWMS.handler
+      Role: !GetAtt StepFunctionLambdaRole.Arn
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+
+  PersistOutbound:
+    Type: AWS::Serverless::Function
+    Properties:
+      ReservedConcurrentExecutions: 1
+      MemorySize: 1024
+      CodeUri: src/
+      Handler: ui/PersistOutbound.handler
+      Runtime: nodejs16.x
+      Role: !GetAtt StepFunctionLambdaRole.Arn
+      Architectures:
+        - x86_64
+
+  EmitEvent:
+    Type: AWS::Serverless::Function
+    Properties:
+      ReservedConcurrentExecutions: 1
+      MemorySize: 1024
+      CodeUri: src/
+      Handler: ui/EmitEvent.handler
+      Role: !GetAtt StepFunctionLambdaRole.Arn
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+
+  ReplyToResponseBus:
+    Type: AWS::Serverless::Function
+    Properties:
+      ReservedConcurrentExecutions: 1
+      MemorySize: 1024
+      CodeUri: src/
+      Handler: ui/ReplyToResponseBus.handler
+      Role: !GetAtt StepFunctionLambdaRole.Arn
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+
+  LambdaFunctionEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      BatchSize: 1
+      Enabled: true
+      EventSourceArn: !GetAtt CreateOutboundQueue.Arn
+      FunctionName: !GetAtt ConsumeCommandBusAndStartSaga.Arn
+
+  WarehouseAggregateTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+      KeySchema: 
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+
+  ConsumeCommandBusAndStartSagaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Policies:
+        - PolicyName: LambdaPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - 'sqs:ReceiveMessage'
+                  - 'sqs:DeleteMessage'
+                  - 'sqs:GetQueueUrl'
+                  - 'sqs:GetQueueAttributes'
+                  - 'sqs:ChangeMessageVisibility'
+                Resource: !GetAtt CreateOutboundQueue.Arn
+                Effect: Allow
+              - Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: '*'
+                Effect: Allow
+              - Action:
+                  - 'states:StartExecution'
+                Resource: !GetAtt CreateOutbound.Arn
+                Effect: Allow
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - 'sts:AssumeRole'
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+
+  StepFunctionLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Policies:
+        - PolicyName: LambdaPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - 'dynamodb:UpdateItem'
+                  - 'dynamodb:PutItem'
+                Resource: !GetAtt WarehouseAggregateTable.Arn
+                Effect: Allow
+              - Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: '*'
+                Effect: Allow
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - 'sts:AssumeRole'
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+
+  CreateOutboundLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/vendedlogs/states/sam123
+
+  StatesExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service:
+                - !Sub states.${AWS::Region}.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Path: '/'
+      Policies:
+        - PolicyName: StatesExecutionPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'lambda:InvokeFunction'
+                Resource: '*'
+              - Action:
+                  - logs:*
+                  - cloudwatch:*
+                Resource: '*'
+                Effect: Allow
