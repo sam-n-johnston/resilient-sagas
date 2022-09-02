@@ -10,6 +10,6 @@ export class CreateOutboundInWMSHandler {
 
         await this.wmsService.createOutbound(outbound, command.requestId);
 
-        return outbound.id;
+        return outbound.id.toString();
     }
 }

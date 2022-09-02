@@ -11,7 +11,9 @@ export class ReplyToResponseBusHandler {
         await this.responseBus.reply(
             'Warehouse.OutboundCreated',
             command.requestId,
-            outbound.id
+            {
+                id: outbound.id,
+            }
         );
     }
 }

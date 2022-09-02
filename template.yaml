@@ -47,18 +47,77 @@ Resources:
                         Type: Task
                         Resource: !GetAtt CreateOutboundInWMS.Arn
                         Next: PersistOutbound
+                        Retry:
+                            - ErrorEquals:
+                                  - WMSUnreachableException
+                                  - WMSCrashException
+                              IntervalSeconds: 5
+                              MaxAttempts: 2
+                              BackoffRate: 1.5
+                        Catch:
+                            - ErrorEquals:
+                                  - WMSUnreachableException
+                                  - WMSCrashException
+                                  - WMSValidationFailedException
+                              Next: ReplyToResponseBus
+                              ResultPath: '$.error'
                     PersistOutbound:
                         Type: Task
                         Resource: !GetAtt PersistOutbound.Arn
                         Next: EmitEvent
+                        Retry:
+                            - ErrorEquals:
+                                  - DatabaseUnreachableException
+                                  - DatabaseThrottlingException
+                              IntervalSeconds: 5
+                              MaxAttempts: 2
+                              BackoffRate: 1.5
+                        Catch:
+                            - ErrorEquals:
+                                  - DatabaseUnreachableException
+                                  - DatabaseThrottlingException
+                              Next: CancelOutboundInWMS
+                              ResultPath: '$.error'
+                    CancelOutboundInWMS:
+                        Type: Pass
+                        Next: ReplyToResponseBus
                     EmitEvent:
                         Type: Task
                         Resource: !GetAtt EmitEvent.Arn
                         Next: ReplyToResponseBus
+                        Retry:
+                            - ErrorEquals:
+                                  - PubsubUnreachableException
+                              IntervalSeconds: 5
+                              MaxAttempts: 2
+                              BackoffRate: 1.5
+                        Catch:
+                            - ErrorEquals:
+                                  - AccessDeniedException
+                                  - PubsubUnreachableException
+                              Next: DeleteOutbound
+                              ResultPath: '$.error'
+                    DeleteOutbound:
+                        Type: Pass
+                        Next: CancelOutboundInWMS
                     ReplyToResponseBus:
                         Type: Task
                         Resource: !GetAtt ReplyToResponseBus.Arn
+                        Retry:
+                            - ErrorEquals:
+                                  - BusUnreachableException
+                              IntervalSeconds: 5
+                              MaxAttempts: 2
+                              BackoffRate: 1.5
+                        Catch:
+                            - ErrorEquals:
+                                  - BusUnreachableException
+                              Next: SendMessageForManualIntervention
+                              ResultPath: '$.error'
                         End: true
+                    SendMessageForManualIntervention:
+                        Type: Pass
+                        End: True
 
     CreateOutboundInWMS:
         Type: AWS::Serverless::Function

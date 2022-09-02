@@ -1,7 +1,8 @@
 import { InvalidOutboundException } from './errors/InvalidOutboundException';
+import { OutboundId } from './OutboundId';
 
 export class Outbound {
-    private constructor(private readonly _id: string) {}
+    private constructor(private readonly _id: OutboundId) {}
 
     public static create(): Outbound {
         // Random chance of failure
@@ -11,7 +12,7 @@ export class Outbound {
             throw new InvalidOutboundException('Outbound is not valid!');
         }
 
-        return new Outbound('myId');
+        return new Outbound(OutboundId.create('myId'));
     }
 
     get id() {
