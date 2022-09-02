@@ -29,18 +29,12 @@ export class HTTPWMSService implements WMSService {
             return Promise.resolve();
         } catch (error: any) {
             if (error.message === 'HTTP timed out, received HTTP code 504') {
-                throw new WMSUnreachableException(
-                    'The WMS was unreachable within a reasonable delay',
-                    error
-                );
+                throw new WMSUnreachableException(error);
             } else if (
                 error.message ===
                 'Outbound does not have any items, received HTTP code 400'
             ) {
-                throw new WMSValidationFailedException(
-                    'The validation of the Outbound failed in the WMS',
-                    error
-                );
+                throw new WMSValidationFailedException(error);
             } else if (
                 error.message ===
                 'Internal Server Error, received HTTP code 500'

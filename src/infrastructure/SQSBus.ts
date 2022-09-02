@@ -32,7 +32,7 @@ export class SQSBus implements Bus {
                 .promise();
         } catch (error: any) {
             if (error.message === 'SQS timed out, received HTTP code 504') {
-                throw new BusUnreachableException('', error);
+                throw new BusUnreachableException(error);
             } else {
                 throw error;
             }

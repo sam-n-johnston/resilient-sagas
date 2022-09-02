@@ -1,7 +1,7 @@
 export class PubsubUnreachableException extends Error {
     public readonly name: string = 'PubsubUnreachableException';
 
-    constructor(errorMsg: string, public readonly previousError?: any) {
-        super(errorMsg);
+    constructor(public readonly previousError?: any) {
+        super('The Pubsub service was unreachable within a reasonable delay');
     }
 }

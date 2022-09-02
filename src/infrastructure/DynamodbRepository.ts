@@ -14,26 +14,17 @@ export class DynamodbRepository implements OutboundRepository {
             }
 
             if (value > 0.25 && value < 0.5) {
-                throw new Error(
-                    'Getting error Too Many Requests, received HTTP code 429'
-                );
+                throw { name: 'ProvisionedThroughputExceededException' };
             }
 
             return Promise.resolve();
         } catch (error: any) {
             if (error.message === 'HTTP timed out, received HTTP code 504') {
-                throw new DatabaseUnreachableException(
-                    'The databvase was unreachable within a reasonable delay',
-                    error
-                );
+                throw new DatabaseUnreachableException(error);
             } else if (
-                error.message ===
-                'Getting error Too Many Requests, received HTTP code 429'
+                error.name === 'ProvisionedThroughputExceededException'
             ) {
-                throw new DatabaseThrottlingException(
-                    'The validation of the Outbound failed in the WMS',
-                    error
-                );
+                throw new DatabaseThrottlingException(error);
             } else {
                 throw error;
             }

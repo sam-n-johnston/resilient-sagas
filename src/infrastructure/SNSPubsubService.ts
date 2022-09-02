@@ -8,14 +8,20 @@ export class SNSPubsubService implements PubsubService {
             // Random chance of failure
             const value = Math.random();
 
-            if (value > 0.5) {
+            if (value > 0.75) {
                 throw new Error('SNS timed out, received HTTP code 504');
+            }
+
+            if (value < 0.25) {
+                throw { name: 'AccessDeniedException' };
             }
 
             return Promise.resolve();
         } catch (error: any) {
             if (error.message === 'SNS timed out, received HTTP code 504') {
-                throw new PubsubUnreachableException('', error);
+                throw new PubsubUnreachableException(error);
+            } else if (error.name === 'AccessDeniedException') {
+                throw error;
             } else {
                 throw error;
             }
