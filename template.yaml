@@ -60,6 +60,7 @@ Resources:
                                   - WMSUnreachableException
                                   - WMSCrashException
                                   - WMSValidationFailedException
+                                  - InvalidOutboundException
                               Next: ReplyToResponseBus
                               ResultPath: '$.error'
                     PersistOutbound:
@@ -77,6 +78,7 @@ Resources:
                             - ErrorEquals:
                                   - DatabaseUnreachableException
                                   - DatabaseThrottlingException
+                                  - InvalidOutboundException
                               Next: CancelOutboundInWMS
                               ResultPath: '$.error'
                     CancelOutboundInWMS:
@@ -96,6 +98,7 @@ Resources:
                             - ErrorEquals:
                                   - AccessDeniedException
                                   - PubsubUnreachableException
+                                  - InvalidOutboundException
                               Next: DeleteOutbound
                               ResultPath: '$.error'
                     DeleteOutbound:
@@ -113,6 +116,7 @@ Resources:
                         Catch:
                             - ErrorEquals:
                                   - BusUnreachableException
+                                  - InvalidOutboundException
                               Next: SendMessageForManualIntervention
                               ResultPath: '$.error'
                         End: true
