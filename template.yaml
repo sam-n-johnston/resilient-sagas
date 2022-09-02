@@ -19,7 +19,7 @@ Resources:
         Properties:
             ReservedConcurrentExecutions: 1
             MemorySize: 1024
-            CodeUri: src/
+            CodeUri: build/
             Handler: ui/ConsumeCommandBusAndStartSaga.handler
             Runtime: nodejs16.x
             Role: !GetAtt ConsumeCommandBusAndStartSagaRole.Arn
@@ -40,6 +40,7 @@ Resources:
             StateMachineType: STANDARD
             RoleArn: !GetAtt StatesExecutionRole.Arn
             Definition:
+                # Update the step function definition for the new step (and retries/catches)
                 Comment: Step function that reserves stock with strong consistency
                 StartAt: CreateOutboundInWMS
                 States:
@@ -124,7 +125,7 @@ Resources:
         Properties:
             ReservedConcurrentExecutions: 1
             MemorySize: 1024
-            CodeUri: src/
+            CodeUri: build/
             Handler: ui/CreateOutboundInWMS.handler
             Role: !GetAtt StepFunctionLambdaRole.Arn
             Runtime: nodejs16.x
@@ -136,7 +137,7 @@ Resources:
         Properties:
             ReservedConcurrentExecutions: 1
             MemorySize: 1024
-            CodeUri: src/
+            CodeUri: build/
             Handler: ui/PersistOutbound.handler
             Runtime: nodejs16.x
             Role: !GetAtt StepFunctionLambdaRole.Arn
@@ -148,7 +149,7 @@ Resources:
         Properties:
             ReservedConcurrentExecutions: 1
             MemorySize: 1024
-            CodeUri: src/
+            CodeUri: build/
             Handler: ui/EmitEvent.handler
             Role: !GetAtt StepFunctionLambdaRole.Arn
             Runtime: nodejs16.x
@@ -160,7 +161,7 @@ Resources:
         Properties:
             ReservedConcurrentExecutions: 1
             MemorySize: 1024
-            CodeUri: src/
+            CodeUri: build/
             Handler: ui/ReplyToResponseBus.handler
             Role: !GetAtt StepFunctionLambdaRole.Arn
             Runtime: nodejs16.x
