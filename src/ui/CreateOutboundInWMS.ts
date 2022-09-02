@@ -1,5 +1,6 @@
 import { CreateOutboundInWMSCommand } from '../application/services/CreateOutboundInWMSCommand';
 import { CreateOutboundInWMSHandler } from '../application/services/CreateOutboundInWMSHandler';
+import { HTTPWMSService } from '../infrastructure/HTTPWMSService';
 import {
     CreateOuboundInWMSInput,
     CreateOuboundInWMSOutput,
@@ -8,7 +9,7 @@ import {
 export const handler = async (
     input: CreateOuboundInWMSInput
 ): Promise<CreateOuboundInWMSOutput> => {
-    const handler = new CreateOutboundInWMSHandler();
+    const handler = new CreateOutboundInWMSHandler(new HTTPWMSService());
     const command = new CreateOutboundInWMSCommand(
         input.payload.items,
         input.payload.shippingAddress,
