@@ -4,7 +4,9 @@ export interface Bus {
     reply(
         fqdn: string,
         requestId: string,
-        id?: OutboundId,
-        errors?: Error[]
+        payload: {
+            id?: OutboundId;
+            errors?: Error[];
+        }
     ): Promise<void>;
 }
