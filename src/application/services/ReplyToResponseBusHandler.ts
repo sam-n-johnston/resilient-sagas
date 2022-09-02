@@ -1,9 +1,17 @@
+import { Outbound } from '../../domain/Outbound';
+import { Bus } from './Bus';
 import { ReplyToResponseBusCommand } from './ReplyToResponseBusCommand';
 
 export class ReplyToResponseBusHandler {
-    constructor() {}
+    constructor(private readonly responseBus: Bus) {}
 
     public async handle(command: ReplyToResponseBusCommand): Promise<void> {
-        console.log('OK!');
+        const outbound = Outbound.create();
+
+        await this.responseBus.reply(
+            'Warehouse.OutboundCreated',
+            command.requestId,
+            outbound.id
+        );
     }
 }
