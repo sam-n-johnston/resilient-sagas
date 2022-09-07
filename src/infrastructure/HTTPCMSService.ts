@@ -13,7 +13,9 @@ export class HTTPCMSService implements CSMService {
             }
 
             if (value < 0.25) {
-                throw new Error('Invalid shipping address provided');
+                throw new Error(
+                    'Invalid shipping address provided, HTTP code 400'
+                );
             }
 
             if (value > 0.25 && value < 0.5) {
